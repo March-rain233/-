@@ -1,0 +1,33 @@
+#left{
+    background-color: #ff7f50;
+    color: #ffffff;
+}
+#left>:first-child{
+    text-align: center;
+    font-size: xx-large;
+    font-weight: bolder;
+    margin: 0;
+    padding: 50px 20px;
+}
+#nav>li{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px 0;
+    cursor: pointer;
+}
+#nav>li:hover{
+    background-color: #eccc68;
+}
+.active{
+    background-color: #eccc68;
+}
+.active::after{
+    content: '';
+    position: absolute;
+    right: 0;
+    border-width:20px;
+    border-style:solid; 
+    border-color:transparent #ffffff transparent transparent;
+}

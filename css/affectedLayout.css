@@ -1,0 +1,47 @@
+html, body{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body{
+    display: flex;
+    flex-direction: column;
+}
+#top{
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+#year{
+    display: flex;
+    flex-direction: column;
+}
+#selects{
+    align-self: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    list-style-type: none;
+    padding: 0;
+    margin: 5px 0;
+}
+#selects>li{
+    text-align: center;
+    padding: 5px 50px;
+    margin: 0;
+    cursor: pointer;
+}
+#main-canvas{
+    flex-grow: 1;
+}
+#year{
+    padding-top: 10px;
+}
+#year-range{
+    -webkit-appearance: slider-vertical;   
+    flex-grow: 1;
+}
+#year-label{
+    text-align: center;
+}

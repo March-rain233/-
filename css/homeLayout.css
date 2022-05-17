@@ -1,0 +1,40 @@
+body,html{
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+body{
+    display: flex;
+    flex-direction: row;
+}
+#left, #right{
+    margin: 0;
+    padding: 0;
+}
+#left{
+    flex-direction: column;
+    width:fit-content;
+    margin: 0;
+    padding: 0;
+}
+#right{
+    display: flex;
+    flex-grow: 1;
+}
+#nav{
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+#nav>li{
+    text-align: center;
+    font-size: x-large;
+    padding: 10px 10px;
+    margin: 0;
+}
+#graph{
+    flex-grow: 1;
+    border: 0;
+}

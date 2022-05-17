@@ -1,0 +1,23 @@
+.active{
+    background-color: #1e90ff;
+    border-radius: 30px;
+    color: #ffffff;
+}
+.circle{
+    fill: transparent;
+    stroke: black;
+    stroke-width: 2px;
+}
+body{
+    background-color: #dfe4ea;
+}
+#selects{
+    border-radius: 30px;
+    background-color: #ffffff;
+}
+#top{
+    background-color: #ffffff;
+}
+#year-label{
+
+}
