@@ -1,0 +1,22 @@
+html,body{
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+body{
+    display: flex;
+}
+#tooltip{
+    display: none;
+}
+#content{
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+#main-canvas{
+    flex-grow: 1;
+}
+#text{
+    width: 200px;
+}
