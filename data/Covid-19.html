@@ -1,0 +1,151 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jutils-src"></script>
+</head>
+
+<body>
+    <div id="svg"></div>
+
+    <div style="text-align: center;">
+        <label style="display: inline-block;">
+            <input id="slider" type="date" min="2020-01-22" max="2020-07-27">
+        </label>
+    </div> 
+
+    <script>
+
+        function formatDate(date) {
+            // var date = jutils.formatDate(new Date(1533686888*1000),"YYYY-MM-DD");
+            console.log(date);
+            date = new Date(Date.parse(date.replace(/-/g, "/"))); 
+            console.log(date);
+            var y = date.getFullYear();
+            console.log(y);
+            var m = date.getMonth() + 1;
+            m = m < 10 ? '0' + m : m;
+            var d = date.getDate();
+            d = d < 10 ? ('0' + d) : d;
+            return y + '-' + m + '-' + d;
+        }
+
+        const [width, height] = [1300, 600];
+        const margin = {
+            top: 100,
+            right: 100,
+            bottom: 20,
+            left: 50
+        };
+
+        d3.csv('../data/covid_19_clean_complete.csv').then(res => {
+            res = res.map(d => {
+                if (!d['Province/State']) {
+                    d['Province/State'] = d['Country/Region']
+                }
+                d['Date'] = formatDate(d['Date'])
+                return d;
+            })
+            console.log(res);
+            const all_data = d3.group(res, d => d.Date);
+            const data = all_data.get('2020-07-27');
+
+
+            const x = d3.scaleLinear(d3.extent(res, d => parseFloat(d.Long)), [margin.left, width - margin.right]);
+            const y = d3.scaleLinear(d3.extent(res, d => parseFloat(d.Lat)), [height - margin.bottom, margin.top]);
+            const radius = d3.scaleSqrt([0, 5e8], [0, width/3]);
+
+            const xAxis = g => g
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x).ticks(width / 25, ","))
+                .call(g => g.select(".domain").remove())
+                .call(g => g.append("text")
+                    .attr("x", width)
+                    .attr("y", margin.bottom - 4)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "end")
+                    .text("Longitude →"));
+
+            const yAxis = g => g
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y))
+                .call(g => g.select(".domain").remove())
+                .call(g => g.append("text")
+                    .attr("x", -margin.left)
+                    .attr("y", 10)
+                    .attr("fill", "currentColor")
+                    .attr("text-anchor", "start")
+                    .text("↑ Latitude"));
+
+            const grid = g => g
+                .attr("stroke", "currentColor")
+                .attr("stroke-opacity", 0.1)
+                .call(g => g.append("g")
+                    .selectAll("line")
+                    .data(x.ticks())
+                    .join("line")
+                    .attr("x1", d => 0.5 + x(d))
+                    .attr("x2", d => 0.5 + x(d))
+                    .attr("y1", margin.top)
+                    .attr("y2", height - margin.bottom))
+                .call(g => g.append("g")
+                    .selectAll("line")
+                    .data(y.ticks())
+                    .join("line")
+                    .attr("y1", d => 0.5 + y(d))
+                    .attr("y2", d => 0.5 + y(d))
+                    .attr("x1", margin.left)
+                    .attr("x2", width - margin.right));
+
+            const svg = d3.select("#svg")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const circle = svg.append("g")
+                .attr("stroke", "black")
+                .selectAll("circle")
+                .data(data, d => d['Province/State'])
+                .join("circle")
+                .sort((a, b) => d3.descending(a.population, b.population))
+                .attr("cx", d => x(d.Long))
+                .attr("cy", d => y(d.Lat))
+                .attr("r", d => radius(d.Confirmed))
+                .attr("fill", '#bf242a')
+                .on('mouseenter', function () {
+                    d3.select(this).attr("fill", 'orange')
+                })
+                .on('mouseleave', function () {
+                    d3.select(this).attr("fill", '#bf242a')
+                })
+                .call(circle => circle.append("title")
+                    .text(d => `${d['Province/State']}\n${d['Confirmed']}`));
+
+            svg.append("g")
+                .call(xAxis);
+
+            svg.append("g")
+                .call(yAxis);
+
+            svg.append("g")
+                .call(grid);
+
+
+            function update(date) {
+                const data = all_data.get(date);
+                circle.data(data, d => d['Province/State'])
+                    .transition()
+                    .attr("r", d => radius(d.Confirmed));
+            }
+
+            $("#slider").on('change', () => {
+                const date = $("#slider").val();
+                update(date);
+            });
+        });
+    </script>
+</body>
+
+</html>
