@@ -21,7 +21,7 @@ class ScatterPlot extends Chart {//散点图
         this.width = 1920;
         this.height = 1080;
         this.minR = 0;
-        this.maxR = 50;
+        this.maxR = 80;
         this.svg.attr("preserveAspectRatio", "none")
             .attr("viewBox", "0 0 " + this.width + " " + this.height);
         this.xScale = this.getxScale(data);
@@ -56,9 +56,15 @@ class ScatterPlot extends Chart {//散点图
             .range([this.height - this.padding.top - this.padding.bottom, 0]);
     }
     getrScale(data) {
-        return d3.scale.linear()
+        let maxR = this.maxR;
+        let rs = d3.scale.linear()
             .domain([d3.min(data.map((elem) => elem['rValue'])), d3.max(data.map((elem) => elem['rValue']))])
-            .range([this.minR, this.maxR]);
+            .range([0, 1]);
+        return function(data){
+            let i = rs(data);
+            i = Math.pow(i, 1./2.);
+            return maxR * i;
+        }
     }
     getxAxis() {
         let height = this.height;
@@ -123,7 +129,8 @@ class ScatterPlot extends Chart {//散点图
             })
             .attr("r", function (d) {
                 return rScale(d['rValue']);
-            });
+            })
+            .text(d=>d['info']);
         circles.exit()
             .remove();
         return circles;
@@ -150,7 +157,7 @@ class ScatterPlot extends Chart {//散点图
     }
 }
 class StackBar extends Chart {//堆叠柱状图
-    constructor(svg, data, filter, padding = { top: 10, bottom: 30, left: 90, right: 10 }) {
+    constructor(svg, data, filter, padding = { top: 10, bottom: 30, left: 95, right: 10 }) {
         super(svg, data, filter, padding);
     }
     init(data) {
@@ -160,10 +167,10 @@ class StackBar extends Chart {//堆叠柱状图
         this.rectWidth = 100;
         let rw = (this.interaval + this.rectWidth) * data[0].data.length - this.interaval + this.padding.left + this.padding.right;
         this.svg.attr("preserveAspectRatio", "none")
-            .attr("viewBox", "0 0 " + this.width + " " + this.height);
+            .attr("viewBox", "0 0 " + this.width + " " + this.height)
         this.width = rw;
         this.svg.append('g');
-        this.svg = this.svg.select('g');
+        this.g = this.svg.select('g');
         this.stack = d3.layout.stack()
             .values(d => d.data)
             .x(d => d.xValue)
@@ -185,7 +192,7 @@ class StackBar extends Chart {//堆叠柱状图
     }
     getyScale(data) {
         return d3.scale.linear()
-            .domain([0, d3.max(data.map(elem=>d3.max(elem.data.map(elem => elem['yValue']))))])
+            .domain([0, d3.max(data.map(elem=>d3.max(elem.data.map(elem => elem.y + elem.y0))))])
             .range([this.height - this.padding.top - this.padding.bottom, 0]);
     }
     getColors(data) {
@@ -197,7 +204,7 @@ class StackBar extends Chart {//堆叠柱状图
         let xAxis = d3.svg.axis()
             .scale(this.xScale)
             .orient("bottom");
-        return this.svg.append("g")
+        return this.g.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(" + padding.left + "," + (height - padding.bottom) + ")")
             .call(xAxis);
@@ -208,7 +215,7 @@ class StackBar extends Chart {//堆叠柱状图
         let yAxis = d3.svg.axis()
             .scale(this.yScale)
             .orient("left");
-        this.svg.append("g")
+        this.g.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
             .call(yAxis)
@@ -230,7 +237,7 @@ class StackBar extends Chart {//堆叠柱状图
         let colors = this.colors;
         let xScale = this.xScale;
         let yScale = this.yScale;
-        var stack = this.svg.selectAll('.stack')
+        var stack = this.g.selectAll('.stack')
             .data(data)
             .enter()
             .append('g')
@@ -258,7 +265,8 @@ class StackBar extends Chart {//堆叠柱状图
         return rect;
     }
     getZoom(){
-        let svg = this.svg;
+        let svg = this.g;
+        let width = this.width;
         let zoom = d3.behavior.zoom()
             .on('zoomstart', () => {
                 svg.style('cursor', 'pointer');
@@ -268,9 +276,12 @@ class StackBar extends Chart {//堆叠柱状图
                 svg.style('cursor', 'default');
             });
         function zoomed(){
-            console.log(d3.event.translate[0]);
             if(d3.event.translate[0] > 0){
                 zoom.translate([0,0]);
+                return;
+            }
+            else if(d3.event.translate[0] < -width + 1920){
+                zoom.translate([-width + 1920,0]);
                 return;
             }
             svg.attr('transform',
@@ -290,7 +301,7 @@ class SunBurst extends Chart{//旭日图
         this.svg.attr("preserveAspectRatio", "none")
             .attr("viewBox", "0 0 " + this.width + " " + this.height)
             .append('g');
-        this.svg = this.svg.select('g')
+        this.g = this.svg.select('g')
             .attr('transform', 'translate(' + this.width/2 + ',' + this.height/2 + ')');
         this.partition = d3.layout.partition()
             .size([2 * Math.PI, (this.height - this.padding.top - this.padding.bottom)/ 2])
@@ -301,10 +312,10 @@ class SunBurst extends Chart{//旭日图
             .innerRadius(function (d) { return d.y; })
             .outerRadius(function (d) { return d.y + d.dy; });
         this.colors = d3.scale.category10();
-        console.log(data);
         let colors = this.colors;
-        this.path = this.svg.selectAll("path")
-            .data(data)
+        this.path = this.g.selectAll("path")
+            .data(data);
+        this.path
             .enter()
             .append("path")
             .attr("d", this.arc)
@@ -319,10 +330,77 @@ class SunBurst extends Chart{//旭日图
             .style("opacity", d=>{
                 return d.dx >= 0.05 || d.depth <= 1 ? 1 : 0;
             });
-        this.label = this.svg.selectAll('text')
-            .data(data)
+        this.path.exit()
+            .remove();
+        this.label = this.g.selectAll('text')
+            .data(data);
+        this.label
             .enter()
             .append('text')
+            .attr('fill', 'white')
+            .attr('x', d=>d.y)
+            .attr('dx', 5)
+            .attr('text-anchor', 'start')
+            .attr('opacity', d => d.dx >= 0.06 && d.depth != 0 ? 1 : 0)
+            .attr('transform', d => {
+                return 'rotate(' + ((d.x + d.dx / 2) * 180 / Math.PI - 90)+ ')';
+            })
+            .text(d => d.name);
+        this.label
+            .exit()
+            .remove();
+        this.tooltip = d3.select('body')
+            .append('div')
+            .attr("class", "tooltip")
+            .style("opacity",0.0);
+        let tooltip = this.tooltip;
+        let path = this.path;
+        this.path
+            .on('mouseover', function (d) {
+                if(this.style.opacity == 0. || d.name == 'sunburst')
+                    return;
+                path.filter(date=>{
+                    let flag = true;
+                    let p = d;
+                    do{
+                        if(p == date)
+                            flag = false;
+                        p = p.parent;
+                    }while(flag&&p.depth != 0);
+                    return flag;
+                })
+                .attr("fill-opacity", 0.6);
+                tooltip.html(d.info + '<br>' + '占比:' + 100 * d.dx / (2 * Math.PI) + '%')
+                    .style("left", (d3.event.pageX - 100) + "px")
+                    .style("top", (d3.event.pageY - 60) + "px")
+                    .style("opacity", 1.0);
+            })
+            .on('mouseout', function (d) {
+                path.attr("fill-opacity", 1.);
+                tooltip.style("opacity", 0.0);
+            });
+    }
+    updataBase(data) {
+        let colors = this.colors;
+        data = this.partition(data);
+        this.path
+            .data(data)
+            .transition()
+            .attr("d", this.arc)
+            .attr("fill-rule", "evenodd")
+            .style("fill", function(d){
+                if(!d.depth)
+                    return 'transparent';
+                while(d.depth != 1)
+                    d=d.parent;
+                return colors(d.color);
+            })
+            .style("opacity", d=>{
+                return d.dx >= 0.05 || d.depth <= 1 ? 1 : 0;
+            });
+        this.label
+            .data(data)
+            .transition()
             .attr('x', d=>d.y)
             .attr('dx', 5)
             .attr('text-anchor', 'start')
@@ -334,5 +412,118 @@ class SunBurst extends Chart{//旭日图
     }
 }
 class DateMap extends Chart{//日期热力图
+    constructor(svg, data, filter, padding = { top: 0, bottom: 0, left: 0, right: 0 }) {
+        super(svg, data, filter, padding);
+    }
+    init(data){
+        this.width = 1920;
+        this.height = 1080;
+        this.cellHeight = (this.height - this.padding.top - this.padding.bottom) / 7;
+        this.cellWidth = (this.width - this.padding.left - this.padding.right) / (d3.max(data.map(elem=>elem.week)) + 1);
+        // let cellSize = Math.min(this.cellHeight, this.cellWidth);
+        // this.cellHeight = cellSize;
+        // this.cellWidth = cellSize;
+        this.svg.attr("preserveAspectRatio", "none")
+            .attr("viewBox", "0 0 " + this.width + " " + this.height)
+            .append('g');
+        this.g = this.svg.select('g');
+            // .attr('transform', 'translate(' + 0 + ',' + 4 * this.cellHeight + ')');
+        this.colors = this.getColors(data);
+        this.rects = this.getRects(data);
+        this.monthText = this.getMonthText(data);
+        this.tooltip = d3.select('body')
+            .append('div')
+            .attr("class", "tooltip")
+            .style("opacity",0.0);
+        let tooltip = this.tooltip;
+        let rects = this.rects;
+        let chart = this;
+        this.rects
+            .on('mouseover', function(d){
+                let self = d;
+                rects.filter(d=>d!=self)
+                    .attr('fill-opacity', 0.6);
+                rects.filter(d=>d==self)
+                    .attr('fill', d=>{
+                        return 'red';
+                    });
+                tooltip.html(d.info)
+                    .style("left", (d3.event.pageX - 60) + "px")
+                    .style("top", (d3.event.pageY - 60) + "px")
+                    .style("opacity",1.0);
+            })
+            .on('mouseout', function(d){
+                let self = d;
+                rects.filter(d=>d!=self)
+                .attr('fill-opacity', 1);
+                rects.filter(d=>d==self)
+                    .attr('fill', d=>{
+                        return chart.colors(d.value);
+                    });
+                tooltip.style("opacity", 0.0);
+            });
+    }
+    updataBase(data) {
+        let cellHeight = this.cellHeight;
+        let cellWidth = this.cellWidth;
+        this.colors = this.getColors(data);
+        let colors = this.colors;
+        this.rects
+            .data(data)
+            .transition()
+            .attr('x', d=>{
+                return d.week * cellWidth + this.padding.left;
+            })
+            .attr('y', d=>{
+                return d.day * cellHeight + this.padding.top;
+            })
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', cellWidth)
+            .attr('height', cellHeight)
+            .attr('fill', d=>{
+                return colors(d.value);
+            });
+    }
+    getColors(data){
+        let linear = d3.scale.linear()
+            .domain([0, d3.max(data.map(elem=>elem.value))])
+            .range([0, 1]);
+        let compute = d3.interpolate('white', 'red');
+        return function(d){
+            return compute(linear(d));
+        }
+    }
+    getRects(data){
+        let cellHeight = this.cellHeight;
+        let cellWidth = this.cellWidth;
+        let colors = this.colors;
+        let rects = this.g.selectAll('rect')
+            .data(data);
+        rects.enter()
+            .append('rect')
+            .attr('class', 'dayRect')
+            .attr('x', d=>{
+                return d.week * cellWidth + this.padding.left;
+            })
+            .attr('y', d=>{
+                return d.day * cellHeight + this.padding.top;
+            })
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', cellWidth)
+            .attr('height', cellHeight)
+            .attr('fill', d=>{
+                return colors(d.value);
+            });
+        rects.exit()
+            .remove();
+        return rects;
+    }
+    getMonthText(data){
+
+    }
+}
+class LineChart extends Chart{//折线图
 
 }

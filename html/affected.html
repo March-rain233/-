@@ -11,18 +11,39 @@
 </head>
 
 <body>
-    <div id="top">
-        <svg id="main-canvas"></svg>
-        <div id="year">
-            <input type="range" id="year-range" />
-            <label id="year-label" for="year-range">1111</>
+    <div id="container">
+        <svg id="map"></svg>
+        <svg id="sunburst"></svg>
+        <svg id="stackbar"></svg>
+        <svg id="linechart"></svg>
+        <svg id="datemap"></svg>
+        <div id="rates">
+            <div class="bubble" id="death-rate">
+                <div class="water">
+                    <div class="wave"></div>
+                </div>
+            </div>
+            <div class="bubble" id="recovered-rate">
+                <div class="water">
+                    <div class="wave"></div>
+                </div>
+            </div>
+            <p>死亡率</p>
+            <p>治愈率</p>
+        </div>
+        <div id="attributes">
+            <ul id="selects">
+                <li>确诊人数</li>
+                <li>死亡人数</li>
+                <li>待治愈人数</li>
+                <li>治愈人数</li>
+            </ul>
+            <div id="year">
+                <input type="range" id="year-range" />
+                <label id="year-label" for="year-range"></co>
+            </div>
         </div>
     </div>
-    <ul id="selects">
-        <li>确诊人数</li>
-        <li>死亡人数</li>
-        <li>待治愈人数</li>
-    </ul>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="../js/charts.js"></script>
     <script src="../js/affected.js"></script>

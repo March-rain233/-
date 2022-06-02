@@ -12,11 +12,12 @@ for(let i = 0; i < tabs.length; ++i){
         select(i);
     }
 }
-select(0);
+select(1);
 var dataset;//全局数据集
 var minDate;//最小时间
 var maxDate;//最大时间
 var nowDate;//当前选中时间
+var local = 'world';//当前的地点
 function dateDiff(sDate1, sDate2) {//获取日期差
     var aDate = sDate1.split("-");
     var oDate1 = new Date(aDate[0], aDate[1] - 1, aDate[2]);
@@ -65,6 +66,6 @@ d3.csv('../data/covid_19_clean_complete.csv', function (error, data) {
         });
         minDate = d3.min(times);
         maxDate = d3.max(times);
-        nowDate = minDate;
+        nowDate = maxDate;
     }
 });

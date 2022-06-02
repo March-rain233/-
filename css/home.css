@@ -1,5 +1,5 @@
 #left{
-    background-color: #ff7f50;
+    background-color: #2980b9;
     color: #ffffff;
 }
 #left>:first-child{
@@ -18,10 +18,10 @@
     cursor: pointer;
 }
 #nav>li:hover{
-    background-color: #eccc68;
+    background-color: #3498db;
 }
 .active{
-    background-color: #eccc68;
+    background-color: #3498db;
 }
 .active::after{
     content: '';
